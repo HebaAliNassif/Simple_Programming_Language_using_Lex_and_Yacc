@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include "../header.h"
 #include "yacc.tab.h"
+
 void yyerror(char *);
 %}
 

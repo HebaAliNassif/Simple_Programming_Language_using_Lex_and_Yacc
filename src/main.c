@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "header.h"
 #include "rules\yacc.tab.h"
+
 static int lbl;
 
 int ex(nodeType *p) {
