@@ -17,8 +17,6 @@ void yyerror(char *);
 DIGIT               [0-9]
 INTEGER             {DIGIT}+
 FLOAT               {DIGIT}+"."{DIGIT}*
-EXP                 ([eE][-+]?{INTEGER})
-REAL                ({INTEGER}{EXP}|{FLOAT}{EXP}?)
 LETTER              [a-zA-Z_]
 IDENTIFIER          {LETTER}({LETTER}|{DIGIT})*
 LINE_COMMENT        "//"(.)*
@@ -32,14 +30,18 @@ LINE_COMMENT        "//"(.)*
 %}
 
 {INTEGER} {       printf("An integer: %s (%d)\n", yytext, atoi(yytext))
-                  return atoi(yytext);
+                  yyval = atoi(yytext);
+                  return yyval;
 }
 
-{FLOAT} {       printf("A float: %s (%d)\n", yytext, atof(yytext))
-                  return atof(yytext);
+{FLOAT} {         printf("A float: %s (%f)\n", yytext, atof(yytext))
+                  yyval = atof(yytext);
+                  return yyval;
 }
 
-{IDENTIFIER}      printf("An identifier: %s\n", yytext);
+{IDENTIFIER} {    printf("An identifier: %s\n", yytext)
+                  return yytext;
+}
 
 
 
@@ -80,9 +82,9 @@ LINE_COMMENT        "//"(.)*
 ">>"                        return SHR;
 "&&"                        return LOGICAL_AND;
 "||"                        return LOGICAL_OR;
-[-+*/%&|^~!<>=(){}[\],:;]   return yytext[0];
+[-+*/%&|^~!<>=(){}[\],:;]   return *yytext;
 [ \t\n]+                    ;                             /* ignore whitespace */
-.                           yyerror("Unknown character");
+.                           yyerror("Unknown character: "%s\n", yytext);
 %%
 
 %{
