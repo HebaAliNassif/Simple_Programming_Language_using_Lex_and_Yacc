@@ -15,8 +15,8 @@ void yyerror(char *);
 %}
 
 DIGIT               [0-9]
-INTEGER             [0-9]+
-FLOAT               (([0-9]*\.[0-9]+)|([0-9]+\.[0-9]*))
+INTEGER             {DIGIT}+
+FLOAT               {DIGIT}+"."{DIGIT}*
 EXP                 ([eE][-+]?{INTEGER})
 REAL                ({INTEGER}{EXP}|{FLOAT}{EXP}?)
 LETTER              [a-zA-Z_]
@@ -30,6 +30,21 @@ LINE_COMMENT        "//"(.)*
 // Rules
 // =====
 %}
+
+{INTEGER} {       printf("An integer: %s (%d)\n", yytext, atoi(yytext))
+                  return atoi(yytext);
+}
+
+{FLOAT} {       printf("A float: %s (%d)\n", yytext, atof(yytext))
+                  return atof(yytext);
+}
+
+{IDENTIFIER}      printf("An identifier: %s\n", yytext);
+
+
+
+
+
 
 %{ // Data Types %}
 "int"                       return TYPE_INT;
