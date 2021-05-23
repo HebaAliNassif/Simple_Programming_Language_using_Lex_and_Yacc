@@ -1,7 +1,7 @@
 %{
 #include <stdlib.h>
 #include "../header.h"
-#include "demo.tab.h"
+#include "Parser.tab.h"
 
 void yyerror(char *);
 %}
@@ -49,7 +49,7 @@ void yyerror(char *);
 "true"                      return BOOL;
 "false"                     return BOOL; 
 
-[a-z A-Z _ ]([a-z A-Z _]|[0-9])*  { 
+[a-zA-Z_]([a-zA-Z_]|[0-9])*  { 
                                     printf(yytext);
                                     return IDENTIFIER;
                                   } 
@@ -69,7 +69,7 @@ void yyerror(char *);
 "="                         return ASSIGN;
 ";"                         return SEMICOLON;
 
-[- + * / % & | ^ ~ ! < > ( ) { } [ : \ ]]   return yytext[0];
+[-+*/%&|^~!<>(){}[:\]]   return yytext[0];
 [ \t\n]+                    ;                      
 [@ # $]                     yyerror("Unknown character: \n");
 %%

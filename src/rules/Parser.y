@@ -55,7 +55,15 @@ void yyerror(char *s);
 %token SHR
 %token LOGICAL_AND
 %token LOGICAL_OR
+/////////////////////////////
+//math operation
+////////////////////////////
+%token ASSIGN
 
+/////////////////////////////
+//Others
+////////////////////////////
+%token SEMICOLON
 
 /////////////////////////////
 //orders
@@ -69,7 +77,7 @@ void yyerror(char *s);
 %left  NOT_EQUAL
 %left GREATER_EQUAL
 %left LESS_EQUAL
-%right      '='
+%right      ASSIGN
 %right      '!' '~'
 
 %nonassoc   ELSE
@@ -80,22 +88,22 @@ program:stmts
 stmts:stmt
     | stmts stmt
     ;         
-stmt:variableDecl ';'
-    | multiVariableDecl ';'
-    | expr ';'
-    | functionCall ';'
+stmt:variableDecl SEMICOLON
+    | multiVariableDecl SEMICOLON
+    | expr SEMICOLON
+    | functionCall SEMICOLON
     | function 
-    | IDENTIFIER '=' functionCall ';'                   
-    | BREAK ';'                  
-    | CONTINUE ';' 
-    | returnStmt ';'                               
+    | IDENTIFIER ASSIGN functionCall SEMICOLON                   
+    | BREAK SEMICOLON                  
+    | CONTINUE SEMICOLON 
+    | returnStmt SEMICOLON                               
     | ifStmt                     
     | switchStmt                 
     | caseStmt                   
     | whileStmt                  
-    | doWhileStmt ';'           
+    | doWhileStmt SEMICOLON           
     | forStmt  
-    | ';'                                             
+    | SEMICOLON                                             
     ;
      
 
@@ -109,18 +117,18 @@ dataType: INTEGER
         | CHAR
         | BOOL;     
 variableDecl: varType IDENTIFIER 
-            | varType IDENTIFIER '=' expr
-            | varType IDENTIFIER '=' functionCall
+            | varType IDENTIFIER ASSIGN expr
+            | varType IDENTIFIER ASSIGN functionCall
             | CONST varType IDENTIFIER
-            | CONST varType IDENTIFIER '=' expr
-            | CONST varType IDENTIFIER '=' functionCall;
+            | CONST varType IDENTIFIER ASSIGN expr
+            | CONST varType IDENTIFIER ASSIGN functionCall;
 
 multiVariableDecl:  variableDecl ',' IDENTIFIER                      
-                | variableDecl ',' IDENTIFIER '=' expr       
+                | variableDecl ',' IDENTIFIER ASSIGN expr       
                 | multiVariableDecl ',' IDENTIFIER                
-                | multiVariableDecl ',' IDENTIFIER '=' expr; 
+                | multiVariableDecl ',' IDENTIFIER ASSIGN expr; 
 
-expr:   expr '=' expr           
+expr:   expr ASSIGN expr           
         | expr '+' expr        
         | expr '-' expr         
         | expr '*' expr     
@@ -189,7 +197,7 @@ doWhileStmt:DO body WHILE '(' expr ')';
 
 forStmt:forHeader body
         |forHeader stmt; 
-forHeader: FOR '(' variableDecl ';' expr ';' expr ')';
+forHeader: FOR '(' variableDecl SEMICOLON expr SEMICOLON expr ')';
 
  
 %%

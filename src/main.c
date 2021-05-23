@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include "header.h"
-#include "rules\demo.tab.h"
+#include "rules\Parser.tab.h"
 
 static int lbl;
 
