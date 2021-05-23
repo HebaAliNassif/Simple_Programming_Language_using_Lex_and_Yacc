@@ -35,48 +35,48 @@ int sym[26];                    // symbol table
 
 // Keywords
 %token CONST
-%token IF;
-%token ELSE;
-%token SWITCH;
-%token CASE;
-%token DEFAULT;
-%token FOR;
-%token DO;
-%token WHILE;
-%token BREAK;
-%token CONTINUE;
-%token RETURN;
+%token IF
+%token ELSE
+%token SWITCH
+%token CASE
+%token DEFAULT
+%token FOR
+%token DO
+%token WHILE
+%token BREAK
+%token CONTINUE
+%token RETURN
 
 // Values
-%token INTEGER 
+%token <iValue>INTEGER
 %token FLOAT
 %token CHAR
 %token BOOL
 
 //variable
-%token IDENTIFIER 
+%token <sIndex>IDENTIFIER
 
 //operators
 
-%token INC;
-%token DEC;
-%token EQUAL;
-%token NOT_EQUAL;
-%token GREATER_EQUAL;
-%token LESS_EQUAL;
-%token SHL;
-%token SHR;
-%token LOGICAL_AND;
-%token LOGICAL_OR;
+%token INC
+%token DEC
+%token EQUAL
+%token NOT_EQUAL
+%token GREATER_EQUAL
+%token LESS_EQUAL
+%token SHL
+%token SHR
+%token LOGICAL_AND
+%token LOGICAL_OR
 /////////////////////////////
 //math operation
 ////////////////////////////
-%token ASSIGN;
+%token ASSIGN
 
 /////////////////////////////
 //Others
 ////////////////////////////
-%token SEMICOLON;
+%token SEMICOLON
 /////////////////////////////
 //orders
 /////////////////////////////
@@ -93,32 +93,31 @@ int sym[26];                    // symbol table
 %right      '!' '~'
 
 %nonassoc   ELSE
-%type <nPtr> program
 %%
 program:stmt
         |
         ;
 
         
-stmt:variableDecl SEMICOLON  
-    | SEMICOLON                                           
+stmt:variableDecl SEMICOLON  {printf("variableDecl SEMICOLON is choosen ");}
+    | SEMICOLON                                   
     ;
      
 
-varType: TYPE_INT
-        | TYPE_FLOAT
-        | TYPE_CHAR
-        | TYPE_BOOL
-        | TYPE_VOID;
+
 dataType: INTEGER
         | FLOAT
         | CHAR
         | BOOL;     
-variableDecl: varType IDENTIFIER 
+variableDecl: varType IDENTIFIER {printf("varType IDENTIFIER is choosen ");}
             | varType IDENTIFIER ASSIGN dataType
             | CONST varType IDENTIFIER
             | CONST varType IDENTIFIER ASSIGN dataType;
- 
+varType: TYPE_INT {printf("TYPE_INT is choosen ");}
+        | TYPE_FLOAT
+        | TYPE_CHAR
+        | TYPE_BOOL
+        | TYPE_VOID; 
 %%
 //////////////////////////////////////////////////////////////////phase2///////////////////////////////////////////////
 nodeType *con(int value) {
