@@ -35,15 +35,11 @@ void yyerror(char *);
 "continue"                  return CONTINUE;
 "return"                    return RETURN;
 
-0                           {
-                                yylval.iValue = atoi(yytext);
-                                return INTEGER;
-                            }
+0                          return INTEGER;
+                            
 
-[1-9][0-9]*                 {
-                                yylval.iValue = atoi(yytext);
-                                return INTEGER;
-                            }
+[1-9][0-9]*                return INTEGER;
+                        
 
 [0-9]+"."[0.9]*             return FLOAT;               
                         
@@ -54,7 +50,6 @@ void yyerror(char *);
 "false"                     return BOOL; 
 
 [a-z A-Z _ ]([a-z A-Z _]|[0-9])*  { 
-                                    yylval.sIndex = *yytext - 'a';
                                     printf(yytext);
                                     return IDENTIFIER;
                                   } 
