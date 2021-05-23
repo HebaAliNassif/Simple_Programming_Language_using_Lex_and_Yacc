@@ -57,6 +57,7 @@ int sym[26];                    // symbol table
 %token IDENTIFIER 
 
 //operators
+
 %token INC;
 %token DEC;
 %token EQUAL;
@@ -67,8 +68,15 @@ int sym[26];                    // symbol table
 %token SHR;
 %token LOGICAL_AND;
 %token LOGICAL_OR;
+/////////////////////////////
+//math operation
+////////////////////////////
+%token ASSIGN;
 
-
+/////////////////////////////
+//Others
+////////////////////////////
+%token SEMICOLON;
 /////////////////////////////
 //orders
 /////////////////////////////
@@ -81,33 +89,19 @@ int sym[26];                    // symbol table
 %left  NOT_EQUAL
 %left GREATER_EQUAL
 %left LESS_EQUAL
-%right      '='
+%right      ASSIGN
 %right      '!' '~'
 
 %nonassoc   ELSE
+%type <nPtr> program
 %%
-program:stmts
-        | ;
+program:stmt
+        |
+        ;
 
-stmts:stmt
-    | stmts stmt
-    ;         
-stmt:variableDecl ';'
-    | multiVariableDecl ';'
-    | expr ';'
-    | functionCall ';'
-    | function 
-    | IDENTIFIER '=' functionCall ';'                   
-    | BREAK ';'                  
-    | CONTINUE ';' 
-    | returnStmt ';'                               
-    | ifStmt                     
-    | switchStmt                 
-    | caseStmt                   
-    | whileStmt                  
-    | doWhileStmt ';'           
-    | forStmt  
-    | ';'                                             
+        
+stmt:variableDecl SEMICOLON  
+    | SEMICOLON                                           
     ;
      
 
@@ -121,88 +115,9 @@ dataType: INTEGER
         | CHAR
         | BOOL;     
 variableDecl: varType IDENTIFIER 
-            | varType IDENTIFIER '=' expr
-            | varType IDENTIFIER '=' functionCall
+            | varType IDENTIFIER ASSIGN dataType
             | CONST varType IDENTIFIER
-            | CONST varType IDENTIFIER '=' expr
-            | CONST varType IDENTIFIER '=' functionCall;
-
-multiVariableDecl:  variableDecl ',' IDENTIFIER                      
-                | variableDecl ',' IDENTIFIER '=' expr       
-                | multiVariableDecl ',' IDENTIFIER                
-                | multiVariableDecl ',' IDENTIFIER '=' expr; 
-
-expr:   expr '=' expr           
-        | expr '+' expr        
-        | expr '-' expr         
-        | expr '*' expr     
-        | expr '/' expr    
-        | expr '%' expr         
-        | expr '|' expr         
-        | expr '^' expr         
-        | expr '&' expr         
-        | '!' expr         
-        | '~' expr         
-        | expr '<' expr         
-        | expr '>' expr
-        | expr INC
-        | INC expr
-        | expr DEC
-        | DEC expr  
-        | expr EQUAL expr
-        | expr NOT_EQUAL expr
-        | expr GREATER_EQUAL expr
-        | expr LESS_EQUAL expr
-        | expr SHL expr
-        | expr SHR expr
-        | expr LOGICAL_AND expr
-        | expr LOGICAL_OR expr
-        | dataType
-        | IDENTIFIER        
-        ;
-
-functionCall: IDENTIFIER '(' functionArgumentsPassed ')';
-functionArgumentsPassed:expr
-                | functionArgumentsPassed ',' expr
-                | ;
-function:   functionHeader body ;
-
-functionHeader:    varType IDENTIFIER '(' functionArgumentsDecl ')' ;
-
-functionArgumentsDecl:            
-                    | variableDecl                        
-                    | functionArgumentsDecl ',' variableDecl 
-                    ;                   
-body:'{'  '}'
-    | '{' stmts '}';  
-
-returnStmt:RETURN expr                 
-    | RETURN 
-    | RETURN functionCall                            
-    ;
-
-ifStmt:un_matched_if
-    | matched_if
-    ;
-un_matched_if:  IF '(' expr ')' body
-                | IF '(' expr ')' stmt;
-matched_if:    IF '(' expr ')' body ELSE body
-                | IF '(' expr ')' stmt ELSE stmt;
-
-switchStmt:SWITCH '(' expr ')' body;
-
-caseStmt: CASE expr ':' stmt             
-    | DEFAULT ':' stmt             
-    ;
-whileStmt:WHILE '(' expr ')' body
-        | WHILE '(' expr ')' stmt;      
-
-doWhileStmt:DO body WHILE '(' expr ')';  
-
-forStmt:forHeader body
-        |forHeader stmt; 
-forHeader: FOR '(' variableDecl ';' expr ';' expr ')';
-
+            | CONST varType IDENTIFIER ASSIGN dataType;
  
 %%
 //////////////////////////////////////////////////////////////////phase2///////////////////////////////////////////////

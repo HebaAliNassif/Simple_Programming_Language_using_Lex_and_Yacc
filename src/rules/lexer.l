@@ -1,7 +1,7 @@
 %{
 #include <stdlib.h>
 #include "../header.h"
-#include "yacc.tab.h"
+#include "demo.tab.h"
 
 void yyerror(char *);
 %}
@@ -13,50 +13,14 @@ void yyerror(char *);
 // Definitions
 // ===========
 %}
+ 
 
-DIGIT               [0-9]
-INTEGER             {DIGIT}+
-FLOAT               {DIGIT}+"."{DIGIT}*
-LETTER              [a-zA-Z_]
-IDENTIFIER          {LETTER}({LETTER}|{DIGIT})*
-LINE_COMMENT        "//"(.)*
-
-%%
-
-%{
-// =====
-// Rules
-// =====
-%}
-
-{INTEGER} {       printf("An integer: %s (%d)\n", yytext, atoi(yytext))
-                  yyval = atoi(yytext);
-                  return yyval;
-}
-
-{FLOAT} {         printf("A float: %s (%f)\n", yytext, atof(yytext))
-                  yyval = atof(yytext);
-                  return yyval;
-}
-
-{IDENTIFIER} {    printf("An identifier: %s\n", yytext)
-                  return yytext;
-}
-
-
-
-
-
-
-%{ // Data Types %}
 "int"                       return TYPE_INT;
 "float"                     return TYPE_FLOAT;
 "char"                      return TYPE_CHAR;
 "bool"                      return TYPE_BOOL;
 "void"                      return TYPE_VOID;
 
-
-%{ // Branch tokens %}
 "const"                     return CONST;
 "if"                        return IF;
 "else"                      return ELSE;
@@ -70,8 +34,21 @@ LINE_COMMENT        "//"(.)*
 "continue"                  return CONTINUE;
 "return"                    return RETURN;
 
+0                           return INTEGER;
 
-%{ // Operators %}
+[1-9][0-9]*                 return INTEGER;
+
+[0-9]+"."[0.9]*             return FLOAT;               
+                        
+   
+\"[.]*\"                    return CHAR;    
+
+"true"                      return BOOL;
+"false"                     return BOOL; 
+
+[a-z A-Z _]([a-z A-Z _]|[0-9])*  return IDENTIFIER; 
+
+
 "++"                        return INC;
 "--"                        return DEC;
 "=="                        return EQUAL;
@@ -82,16 +59,15 @@ LINE_COMMENT        "//"(.)*
 ">>"                        return SHR;
 "&&"                        return LOGICAL_AND;
 "||"                        return LOGICAL_OR;
-[-+*/%&|^~!<>=(){}[\],:;]   return *yytext;
-[ \t\n]+                    ;                             /* ignore whitespace */
-.                           yyerror("Unknown character: "%s\n", yytext);
+
+"="                         return ASSIGN;
+";"                         return SEMICOLON;
+
+[- + * / % & | ^ ~ ! < > ( ) { } [ : \ ]]   return yytext[0];
+[ \t\n]+                    ;                      
+[@ # $]                     yyerror("Unknown character: \n");
 %%
 
-%{
-// ===========
-// Subroutines
-// ===========
-%}
 
 int yywrap(void) {
     return 1;

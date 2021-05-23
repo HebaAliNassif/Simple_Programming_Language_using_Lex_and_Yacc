@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include "header.h"
-#include "rules\yacc.tab.h"
+#include "rules\demo.tab.h"
 
 static int lbl;
 
@@ -42,18 +42,11 @@ int ex(nodeType *p) {
                 printf("L%03d:\n", lbl1);
             }
             break;
-        case PRINT:     
-            ex(p->opr.op[0]);
-            printf("\tprint\n");
-            break;
         case '=':       
             ex(p->opr.op[1]);
             printf("\tpop\t%c\n", p->opr.op[0]->id.i + 'a');
             break;
-        case UMINUS:    
-            ex(p->opr.op[0]);
-            printf("\tneg\n");
-            break;
+    
         default:
             ex(p->opr.op[0]);
             ex(p->opr.op[1]);
@@ -64,10 +57,10 @@ int ex(nodeType *p) {
             case '/':   printf("\tdiv\n"); break;
             case '<':   printf("\tcompLT\n"); break;
             case '>':   printf("\tcompGT\n"); break;
-            case GE:    printf("\tcompGE\n"); break;
-            case LE:    printf("\tcompLE\n"); break;
-            case NE:    printf("\tcompNE\n"); break;
-            case EQ:    printf("\tcompEQ\n"); break;
+            case GREATER_EQUAL:    printf("\tcompGE\n"); break;
+            case LESS_EQUAL:    printf("\tcompLE\n"); break;
+            case NOT_EQUAL:    printf("\tcompNE\n"); break;
+            case EQUAL:    printf("\tcompEQ\n"); break;
             }
         }
     }
