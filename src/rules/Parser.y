@@ -4,6 +4,8 @@
 #include <stdarg.h>
 #include "../header.h"
 
+int yylex(void);
+void yyerror(char *s);
 
 %}
 
