@@ -6,40 +6,73 @@
 void yyerror(char *);
 %}
 
+
+
+%{
+// ===========
+// Definitions
+// ===========
+%}
+
 %%
 
-[a-z]       { 
-                yylval.sIndex = *yytext - 'a';
-                return VARIABLE;
-            }
+"int"                       return TYPE_INT;
+"float"                     return TYPE_FLOAT;
+"char"                      return TYPE_CHAR;
+"bool"                      return TYPE_BOOL;
+"void"                      return TYPE_VOID;
 
-0           {
-                yylval.iValue = atoi(yytext);
-                return INTEGER;
-            }
+"const"                     return CONST;
+"if"                        return IF;
+"else"                      return ELSE;
+"switch"                    return SWITCH;
+"case"                      return CASE;
+"default"                   return DEFAULT;
+"for"                       return FOR;
+"do"                        return DO;
+"while"                     return WHILE;
+"break"                     return BREAK;
+"continue"                  return CONTINUE;
+"return"                    return RETURN;
 
-[1-9][0-9]* {
-                yylval.iValue = atoi(yytext);
-                return INTEGER;
-            }
+0                          return INTEGER;
+                            
 
-[-()<>=+*/;{}.] {
-                return *yytext;
-             }
+[1-9][0-9]*                return INTEGER;
+                        
 
-">="            return GE;
-"<="            return LE;
-"=="            return EQ;
-"!="            return NE;
-"while"         return WHILE;
-"if"            return IF;
-"else"          return ELSE;
-"print"         return PRINT;
+[0-9]+"."[0.9]*             return FLOAT;               
+                        
+   
+\"[.]*\"                    return CHAR;    
 
-[ \t\n]+        ;       /* ignore whitespace */
+"true"                      return BOOL;
+"false"                     return BOOL; 
 
-.               yyerror("Unknown character");
+[a-zA-Z_]([a-zA-Z_]|[0-9])*  return IDENTIFIER;
+                                  
+
+
+"++"                        return INC;
+"--"                        return DEC;
+"=="                        return EQUAL;
+"!="                        return NOT_EQUAL;
+">="                        return GREATER_EQUAL;
+"<="                        return LESS_EQUAL;
+"<<"                        return SHL;
+">>"                        return SHR;
+"&&"                        return LOGICAL_AND;
+"||"                        return LOGICAL_OR;
+
+"="                         return ASSIGN;
+";"                         return SEMICOLON;
+","                         return COMA;
+[-+*/%&|^~!<>(){}[:\]]   return *yytext;
+[ \t\n]+                    ;                      
+[@ # $]                     yyerror("Unknown character: \n");
 %%
+
+
 int yywrap(void) {
     return 1;
 }

@@ -4,141 +4,209 @@
 #include <stdarg.h>
 #include "../header.h"
 
-/* prototypes */
-nodeType *opr(int oper, int nops, ...);
-nodeType *id(int i);
-nodeType *con(int value);
-void freeNode(nodeType *p);
-int ex(nodeType *p);
 int yylex(void);
-
 void yyerror(char *s);
-int sym[26];                    /* symbol table */
+
 %}
 
-%union {
-    int iValue;                 /* integer value */
-    char sIndex;                /* symbol table index */
-    nodeType *nPtr;             /* node pointer */
-};
+///////////////////////////////////////////////////////////////////////////////////////
+////////////////
+// Tokens 
+////////////////
 
-%token <iValue> INTEGER
-%token <sIndex> VARIABLE
-%token WHILE IF PRINT
-%nonassoc IFX
-%nonassoc ELSE
+// Data types
+%token TYPE_INT 
+%token TYPE_FLOAT
+%token TYPE_CHAR
+%token TYPE_BOOL
+%token TYPE_VOID
 
-%left GE LE EQ NE '>' '<'
-%left '+' '-'
-%left '*' '/'
-%nonassoc UMINUS
+// Keywords
+%token CONST
+%token IF
+%token ELSE
+%token SWITCH
+%token CASE
+%token DEFAULT
+%token FOR
+%token DO
+%token WHILE
+%token BREAK
+%token CONTINUE
+%token RETURN
 
-%type <nPtr> stmt expr stmt_list
+// Values
+%token INTEGER 
+%token FLOAT
+%token CHAR
+%token BOOL
 
+//variable
+%token IDENTIFIER 
+
+//operators
+%token INC
+%token DEC
+%token EQUAL
+%token NOT_EQUAL
+%token GREATER_EQUAL
+%token LESS_EQUAL
+%token SHL
+%token SHR
+%token LOGICAL_AND
+%token LOGICAL_OR
+/////////////////////////////
+//math operation
+////////////////////////////
+%token ASSIGN
+
+/////////////////////////////
+//Others
+////////////////////////////
+%token SEMICOLON
+%token COMA
+/////////////////////////////
+//orders
+/////////////////////////////
+%left       '-' '+'
+%left       '*' '/' '%'
+%left       '|'
+%left       '^'
+%left       '&'
+%left  EQUAL
+%left  NOT_EQUAL
+%left GREATER_EQUAL
+%left LESS_EQUAL
+%right      ASSIGN
+%right      '!' '~'
+
+%nonassoc   ELSE
 %%
+program:stmts
+        | ;
 
-program:
-        function                { exit(0); }
+stmts:stmt
+    | stmts stmt
+    ;         
+stmt:variableDecl SEMICOLON
+    | multiVariableDecl SEMICOLON
+    | expr SEMICOLON
+    | functionCall SEMICOLON
+    | function 
+    | IDENTIFIER ASSIGN functionCall SEMICOLON                   
+    | BREAK SEMICOLON                  
+    | CONTINUE SEMICOLON 
+    | returnStmt SEMICOLON                               
+    | ifStmt                     
+    | switchStmt                 
+    | caseStmt                   
+    | whileStmt                  
+    | doWhileStmt SEMICOLON           
+    | forStmt  
+    | SEMICOLON                                             
+    ;
+     
+
+varType: TYPE_INT
+        | TYPE_FLOAT
+        | TYPE_CHAR
+        | TYPE_BOOL
+        | TYPE_VOID;
+dataType: INTEGER
+        | FLOAT
+        | CHAR
+        | BOOL;     
+variableDecl: varType IDENTIFIER 
+            | varType IDENTIFIER ASSIGN expr
+            | varType IDENTIFIER ASSIGN functionCall
+            | CONST varType IDENTIFIER
+            | CONST varType IDENTIFIER ASSIGN expr
+            | CONST varType IDENTIFIER ASSIGN functionCall;
+
+multiVariableDecl:  variableDecl COMA IDENTIFIER                      
+                | variableDecl COMA IDENTIFIER ASSIGN expr       
+                | multiVariableDecl COMA IDENTIFIER                
+                | multiVariableDecl COMA IDENTIFIER ASSIGN expr; 
+
+expr:mathExpr
+    | logicExpr
+    | expr2;
+mathExpr: expr ASSIGN expr 
+        | IDENTIFIER ASSIGN expr          
+        | expr '+' expr        
+        | expr '-' expr         
+        | expr '*' expr     
+        | expr '/' expr    
+        | expr '%' expr            
+        | expr '<' expr         
+        | expr '>' expr
+        | expr INC
+        | INC expr
+        | expr DEC
+        | DEC expr  
+        | expr EQUAL expr
+        | expr NOT_EQUAL expr
+        | expr GREATER_EQUAL expr
+        | expr LESS_EQUAL expr;
+logicExpr: expr '|' expr         
+        | expr '^' expr         
+        | expr '&' expr         
+        | '!' expr         
+        | '~' expr              
+        | expr SHL expr
+        | expr SHR expr
+        | expr LOGICAL_AND expr
+        | expr LOGICAL_OR expr;
+expr2:  dataType
+        | IDENTIFIER        
         ;
 
-function:
-          function stmt         { ex($2); freeNode($2); }
-        | /* NULL */
-        ;
+functionCall: IDENTIFIER '(' functionArgumentsPassed ')';
+functionArgumentsPassed:expr
+                | functionArgumentsPassed COMA expr
+                | ;
+function:   functionHeader body ;
 
-stmt:
-          ';'                            { $$ = opr(';', 2, NULL, NULL); }
-        | expr ';'                       { $$ = $1; }
-        | PRINT expr ';'                 { $$ = opr(PRINT, 1, $2); }
-        | VARIABLE '=' expr ';'          { $$ = opr('=', 2, id($1), $3); }
-        | WHILE '(' expr ')' stmt        { $$ = opr(WHILE, 2, $3, $5); }
-        | IF '(' expr ')' stmt %prec IFX { $$ = opr(IF, 2, $3, $5); }
-        | IF '(' expr ')' stmt ELSE stmt { $$ = opr(IF, 3, $3, $5, $7); }
-        | '{' stmt_list '}'              { $$ = $2; }
-        ;
+functionHeader:    varType IDENTIFIER '(' functionArgumentsDecl ')' ;
 
-stmt_list:
-          stmt                  { $$ = $1; }
-        | stmt_list stmt        { $$ = opr(';', 2, $1, $2); }
-        ;
+functionArgumentsDecl:            
+                    | variableDecl                        
+                    | functionArgumentsDecl COMA variableDecl 
+                    ;                   
+body:'{'  '}'
+    | '{' stmts '}';  
 
-expr:
-          INTEGER               { $$ = con($1); }
-        | VARIABLE              { $$ = id($1); }
-        | '-' expr %prec UMINUS { $$ = opr(UMINUS, 1, $2); }
-        | expr '+' expr         { $$ = opr('+', 2, $1, $3); }
-        | expr '-' expr         { $$ = opr('-', 2, $1, $3); }
-        | expr '*' expr         { $$ = opr('*', 2, $1, $3); }
-        | expr '/' expr         { $$ = opr('/', 2, $1, $3); }
-        | expr '<' expr         { $$ = opr('<', 2, $1, $3); }
-        | expr '>' expr         { $$ = opr('>', 2, $1, $3); }
-        | expr GE expr          { $$ = opr(GE, 2, $1, $3); }
-        | expr LE expr          { $$ = opr(LE, 2, $1, $3); }
-        | expr NE expr          { $$ = opr(NE, 2, $1, $3); }
-        | expr EQ expr          { $$ = opr(EQ, 2, $1, $3); }
-        | '(' expr ')'          { $$ = $2; }
-        ;
+returnStmt:RETURN expr                 
+    | RETURN 
+    | RETURN functionCall                            
+    ;
 
+ifStmt:un_matched_if
+    | matched_if
+    ;
+un_matched_if:  IF '(' expr ')' body
+                | IF '(' expr ')' stmt;
+matched_if:    IF '(' expr ')' body ELSE body
+                | IF '(' expr ')' stmt ELSE stmt
+                | IF '(' expr ')' body ELSE stmt
+                | IF '(' expr ')' stmt ELSE body;
+
+switchStmt:SWITCH '(' expr ')' body;
+
+caseStmt: CASE expr ':' stmt             
+    | DEFAULT ':' stmt             
+    ;
+whileStmt:WHILE '(' expr ')' body
+        | WHILE '(' expr ')' stmt;      
+
+doWhileStmt:DO body WHILE '(' expr ')';  
+
+forStmt:forHeader body
+        |forHeader stmt; 
+forHeader: FOR '(' variableDecl SEMICOLON expr SEMICOLON expr ')';
+
+ 
 %%
-
-nodeType *con(int value) {
-    nodeType *p;
-
-    /* allocate node */
-    if ((p = malloc(sizeof(nodeType))) == NULL)
-        yyerror("out of memory");
-
-    /* copy information */
-    p->type = typeCon;
-    p->con.value = value;
-
-    return p;
-}
-
-nodeType *id(int i) {
-    nodeType *p;
-
-    /* allocate node */
-    if ((p = malloc(sizeof(nodeType))) == NULL)
-        yyerror("out of memory");
-
-    /* copy information */
-    p->type = typeId;
-    p->id.i = i;
-
-    return p;
-}
-
-nodeType *opr(int oper, int nops, ...) {
-    va_list ap;
-    nodeType *p;
-    int i;
-
-    /* allocate node, extending op array */
-    if ((p = malloc(sizeof(nodeType) + (nops-1) * sizeof(nodeType *))) == NULL)
-        yyerror("out of memory");
-
-    /* copy information */
-    p->type = typeOpr;
-    p->opr.oper = oper;
-    p->opr.nops = nops;
-    va_start(ap, nops);
-    for (i = 0; i < nops; i++)
-        p->opr.op[i] = va_arg(ap, nodeType*);
-    va_end(ap);
-    return p;
-}
-
-void freeNode(nodeType *p) {
-    int i;
-
-    if (!p) return;
-    if (p->type == typeOpr) {
-        for (i = 0; i < p->opr.nops; i++)
-            freeNode(p->opr.op[i]);
-    }
-    free (p);
-}
 
 void yyerror(char *s) {
     fprintf(stdout, "%s\n", s);
