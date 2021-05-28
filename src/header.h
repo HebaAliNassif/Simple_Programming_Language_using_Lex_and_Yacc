@@ -1,3 +1,4 @@
+
 typedef enum { typeCon, typeId, typeOpr } nodeEnum;
 
 /* constants */

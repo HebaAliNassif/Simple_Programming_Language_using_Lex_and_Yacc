@@ -68,17 +68,24 @@ void yyerror(char *s);
 /////////////////////////////
 //orders
 /////////////////////////////
-%left       '-' '+'
-%left       '*' '/' '%'
-%left       '|'
-%left       '^'
-%left       '&'
-%left  EQUAL
-%left  NOT_EQUAL
+%left '-' '+'
+%left '*' '/' '%'
+%left '|'
+%left '^'
+%left '&'
+%left EQUAL
+%left NOT_EQUAL
 %left GREATER_EQUAL
+%left '<' '>'
 %left LESS_EQUAL
-%right      ASSIGN
-%right      '!' '~'
+%left LOGICAL_OR
+%left LOGICAL_AND
+%left SHR SHL
+%right ASSIGN
+%right '!' '~'
+
+
+
 
 %nonassoc   ELSE
 %%
@@ -147,9 +154,9 @@ mathExpr: expr ASSIGN expr
         | expr EQUAL expr
         | expr NOT_EQUAL expr
         | expr GREATER_EQUAL expr
+        | expr '^' expr 
         | expr LESS_EQUAL expr;
-logicExpr: expr '|' expr         
-        | expr '^' expr         
+logicExpr: expr '|' expr                 
         | expr '&' expr         
         | '!' expr         
         | '~' expr              

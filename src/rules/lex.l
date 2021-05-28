@@ -69,7 +69,7 @@ void yyerror(char *);
 ","                         return COMA;
 [-+*/%&|^~!<>(){}[:\]]   return *yytext;
 [ \t\n]+                    ;                      
-[@ # $]                     yyerror("Unknown character: \n");
+
 %%
 
 
