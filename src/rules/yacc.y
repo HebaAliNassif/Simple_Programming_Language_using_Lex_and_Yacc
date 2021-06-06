@@ -2,13 +2,33 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <stdbool.h>
 #include "../header.h"
+#include "../symbol_table.h"
+
+/*
+ *Block\Scope data
+ */
+void newBlock();
+void closeBlock();
+int currentBlock = 0;
+int blockCount = 0;
+int parentBlock[100];
 
 int yylex(void);
 void yyerror(char *s);
 
 %}
+/*
+%union {
+    int intVal;                    
+	float floatVal;
+    char charVal;
+    char* variableName;
+    bool boolVal;
+};*/
 
+%start program
 ///////////////////////////////////////////////////////////////////////////////////////
 ////////////////
 // Tokens 
@@ -40,9 +60,15 @@ void yyerror(char *s);
 %token FLOAT
 %token CHAR
 %token BOOL
-
+/*
+%token <intVal> INTEGER 
+%token <floatVal> FLOAT
+%token <charVal> CHAR
+%token <boolVal> BOOL
+*/
 //variable
 %token IDENTIFIER 
+//%token <variableName> IDENTIFIER 
 
 //operators
 %token INC
@@ -89,7 +115,7 @@ void yyerror(char *s);
 
 %nonassoc   ELSE
 %%
-program:stmts
+program:stmts   { exit(0); }
         | ;
 
 stmts:stmt
@@ -214,6 +240,20 @@ forHeader: FOR '(' variableDecl SEMICOLON expr SEMICOLON expr ')';
 
  
 %%
+
+void newBlock(){
+	if(blockCount == 0) 
+	    parentBlock[0] = 0;
+    
+    blockCount++;
+	parentBlock[blockCount] = currentBlock;
+	currentBlock = blockCount;
+}
+
+void closeBlock(){
+	currentBlock--;
+}
+
 
 void yyerror(char *s) {
     fprintf(stdout, "%s\n", s);
