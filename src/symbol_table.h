@@ -7,13 +7,13 @@
 
 enum variableType
 {
-    TYPE_INTEGER = 0,
-    TYPE_CONST_INTEGER = 1,
-    TYPE_FLOAT = 2, 
-    TYPE_CONST_FLOAT = 3,
-    TYPE_CHAR = 4,
-    TYPE_CONST_CHAR = 5, 
-    TYPE_BOOL = 6
+    IntegerVarType,
+    ConstIntegerVarType,
+    FloatVarType, 
+    ConstFloatVarType,
+    CharVarType,
+    ConstCharVarType, 
+    BoolVarType
 };
 
 struct variable 
@@ -124,15 +124,11 @@ bool setVarUsedBefore(char* varName)
 }
 const char* getVarTypeName(enum variableType type) 
 {
-	switch (type) {
-	case TYPE_INTEGER: return "int";
-	case TYPE_FLOAT: return "float";
-	case TYPE_CHAR:	return "char";
-	case TYPE_BOOL: return "bool";
-	case TYPE_CONST_INTEGER: return "int";
-	case TYPE_CONST_FLOAT: return "float";
-	case TYPE_CONST_CHAR:	return "char";
-	}
+	if(type==IntegerVarType || ConstIntegerVarType){return "int";}
+	if(type==FloatVarType || ConstFloatVarType){return "float";}
+	if(type==CharVarType || ConstCharVarType){return "char";}
+	if(type==BoolVarType ){return "bool";}	
+}	
 bool checkVarType(char* varName , enum variableType type)
 {   
 	struct variable * var;
