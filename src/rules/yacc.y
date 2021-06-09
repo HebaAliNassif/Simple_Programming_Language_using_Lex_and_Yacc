@@ -27,14 +27,14 @@ int yylex(void);
 void yyerror(char *s);
 
 %}
-/*
+
 %union {
-    int intVal;                    
-	float floatVal;
-    char charVal;
+    //int intVal;                    
+	//float floatVal;
+    //char charVal;
     char* variableName;
-    bool boolVal;
-};*/
+    //bool boolVal;
+};
 
 %start program
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -75,8 +75,8 @@ void yyerror(char *s);
 %token <boolVal> BOOL
 */
 //variable
-%token IDENTIFIER 
-//%token <variableName> IDENTIFIER 
+//%token IDENTIFIER 
+%token <variableName> IDENTIFIER 
 
 //operators
 %token INC
@@ -136,7 +136,7 @@ stmt:variableDecl SEMICOLON
     | expr SEMICOLON
     | functionCall SEMICOLON
     | function 
-    | IDENTIFIER ASSIGN functionCall SEMICOLON  {declared=SymContains("x");declaredVar(declared);validateVarBeingUsed("x",currentBlock);}              
+    | IDENTIFIER ASSIGN functionCall SEMICOLON  {declared=SymContains($1);declaredVar(declared);validateVarBeingUsed($1,currentBlock);}              
     | BREAK SEMICOLON                  
     | CONTINUE SEMICOLON 
     | returnStmt SEMICOLON                               
@@ -164,26 +164,26 @@ dataType:
         | BOOL {assignedType=6;}
         ;     
 variableDecl:
-            varType IDENTIFIER {declareVariable("x",false , currentVartype,-1,currentBlock);}
-            | varType IDENTIFIER ASSIGN expr {declareVariable("x",true , currentVartype,assignedType,currentBlock);}
-            | varType IDENTIFIER ASSIGN functionCall {declareVariable("x",true , currentVartype,assignedType,currentBlock);}
-            | CONST varType IDENTIFIER {currentVartype=currentVartype+1; declareVariable("x",false, currentVartype,-1,currentBlock);}
-            | CONST varType IDENTIFIER ASSIGN expr {currentVartype=currentVartype+1; declareVariable("x",true , currentVartype,assignedType,currentBlock);}
-            | CONST varType IDENTIFIER ASSIGN functionCall {currentVartype=currentVartype+1; declareVariable("x",true , currentVartype,assignedType,currentBlock);}
+            varType IDENTIFIER {declareVariable($2,false , currentVartype,-1,currentBlock);}
+            | varType IDENTIFIER ASSIGN expr {declareVariable($2,true , currentVartype,assignedType,currentBlock);}
+            | varType IDENTIFIER ASSIGN functionCall {declareVariable($2,true , currentVartype,assignedType,currentBlock);}
+            | CONST varType IDENTIFIER {currentVartype=currentVartype+1; declareVariable($3,false, currentVartype,-1,currentBlock);}
+            | CONST varType IDENTIFIER ASSIGN expr {currentVartype=currentVartype+1; declareVariable($3,true , currentVartype,assignedType,currentBlock);}
+            | CONST varType IDENTIFIER ASSIGN functionCall {currentVartype=currentVartype+1; declareVariable($3,true , currentVartype,assignedType,currentBlock);}
             ; 
 
 multiVariableDecl:  
-                variableDecl COMA IDENTIFIER {declareVariable("x",false , currentVartype,-1,currentBlock);}                     
-                | variableDecl COMA IDENTIFIER ASSIGN expr {declareVariable("x",true , currentVartype,assignedType,currentBlock);}      
-                | multiVariableDecl COMA IDENTIFIER {declareVariable("x",false , currentVartype,-1,currentBlock);}              
-                | multiVariableDecl COMA IDENTIFIER ASSIGN expr {declareVariable("x",true , currentVartype,assignedType,currentBlock);} 
+                variableDecl COMA IDENTIFIER {declareVariable($3,false , currentVartype,-1,currentBlock);}                     
+                | variableDecl COMA IDENTIFIER ASSIGN expr {declareVariable($3,true , currentVartype,assignedType,currentBlock);}      
+                | multiVariableDecl COMA IDENTIFIER {declareVariable($3,false , currentVartype,-1,currentBlock);}              
+                | multiVariableDecl COMA IDENTIFIER ASSIGN expr {declareVariable($3,true , currentVartype,assignedType,currentBlock);} 
                 ;
 expr:mathExpr
     | logicExpr
     | expr2
     ;
-mathExpr: expr ASSIGN expr {validateExpOperation("x",currentVartype,assignedType,currentBlock);}
-        | IDENTIFIER ASSIGN expr   {declared=SymContains("x");declaredVar(declared);validateExpOperation("x",currentVartype,assignedType,currentBlock);}        
+mathExpr: 
+        | IDENTIFIER ASSIGN expr   {declared=SymContains($1);declaredVar(declared);validateExpOperation($1,currentVartype,assignedType,currentBlock);}        
         | expr '+' expr        
         | expr '-' expr         
         | expr '*' expr     
@@ -191,10 +191,10 @@ mathExpr: expr ASSIGN expr {validateExpOperation("x",currentVartype,assignedType
         | expr '%' expr            
         | expr '<' expr         
         | expr '>' expr
-        | expr INC {validateExpOperation("x",currentVartype,currentVartype,currentBlock);}
-        | INC expr {validateExpOperation("x",currentVartype,currentVartype,currentBlock);}
-        | expr DEC {validateExpOperation("x",currentVartype,currentVartype,currentBlock);}
-        | DEC expr {validateExpOperation("x",currentVartype,currentVartype,currentBlock);} 
+        | IDENTIFIER INC {validateExpOperation($1,currentVartype,currentVartype,currentBlock);}
+        | INC IDENTIFIER {validateExpOperation($2,currentVartype,currentVartype,currentBlock);}
+        | IDENTIFIER DEC {validateExpOperation($1,currentVartype,currentVartype,currentBlock);}
+        | DEC IDENTIFIER {validateExpOperation($2,currentVartype,currentVartype,currentBlock);} 
         | expr EQUAL expr
         | expr NOT_EQUAL expr
         | expr GREATER_EQUAL expr
@@ -211,7 +211,7 @@ logicExpr: expr '|' expr
         | expr LOGICAL_OR expr
         ;
 expr2:  dataType
-        | IDENTIFIER  {declared=SymContains("x");declaredVar(declared);validateVarBeingUsed("x",currentBlock);}      
+        | IDENTIFIER  {declared=SymContains($1);declaredVar(declared);validateVarBeingUsed($1,currentBlock);}      
         ;
 
 functionCall: IDENTIFIER '(' functionArgumentsPassed ')';
@@ -232,7 +232,6 @@ body:'{' {newBlock();} '}' {closeBlock();}
     ;  
 
 returnStmt:RETURN expr                 
-    | RETURN 
     | RETURN functionCall                            
     ;
 
@@ -364,6 +363,9 @@ bool validateExpOperation(char* varName, int Vartype,  int Assignedtype,int Curr
 	if(Matched==false) 
     {
         return false;
+    }
+    else{
+        setInitialized(varName);
     }
 
 	if(!checkConstantInitialized(varName))

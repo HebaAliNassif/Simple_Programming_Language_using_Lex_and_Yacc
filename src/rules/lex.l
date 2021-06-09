@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include "../header.h"
 #include "yacc.tab.h"
+#include <string.h>
 
 void yyerror(char *);
 %}
@@ -49,7 +50,7 @@ void yyerror(char *);
 "true"                      return BOOL;
 "false"                     return BOOL; 
 
-[a-zA-Z_]([a-zA-Z_]|[0-9])*  return IDENTIFIER;
+[a-zA-Z_]([a-zA-Z_]|[0-9])*  {yylval.variableName=strdup(yytext);return IDENTIFIER;}
                                   
 
 
