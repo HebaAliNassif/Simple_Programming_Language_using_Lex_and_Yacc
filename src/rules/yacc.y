@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <stdbool.h>
+#include <string.h>
 #include "../header.h"
 #include "../symbol_table.h"
 
@@ -14,12 +15,11 @@ void closeBlock();
 int currentBlock = 0;
 int blockCount = 0;
 int parentBlock[100];
-bool declared;
-bool declaredVar(bool declared);
 bool declareVariable(char *varName, bool initialized, int vartype, int AssignedValue,int BlockNum);
 int currentVartype;
 int assignedType;
 bool validateTypeMatch(int vartype,int AssignedValue);
+char *getTypeName(int value);
 bool validateSameBlock(int BlockNum);
 bool validateVarBeingUsed(char* varName,int currentBlock);
 bool validateExpOperation(char* varName, int Vartype,  int Assignedtype,int CurrentBlock);
@@ -136,7 +136,7 @@ stmt:variableDecl SEMICOLON
     | expr SEMICOLON
     | functionCall SEMICOLON
     | function 
-    | IDENTIFIER ASSIGN functionCall SEMICOLON  {declared=SymContains($1);declaredVar(declared);validateVarBeingUsed($1,currentBlock);}              
+    | IDENTIFIER ASSIGN functionCall SEMICOLON  {validateVarBeingUsed($1,currentBlock);}              
     | BREAK SEMICOLON                  
     | CONTINUE SEMICOLON 
     | returnStmt SEMICOLON                               
@@ -183,7 +183,7 @@ expr:mathExpr
     | expr2
     ;
 mathExpr: 
-        | IDENTIFIER ASSIGN expr   {declared=SymContains($1);declaredVar(declared);validateExpOperation($1,currentVartype,assignedType,currentBlock);}        
+        | IDENTIFIER ASSIGN expr   {validateExpOperation($1,currentVartype,assignedType,currentBlock);}        
         | expr '+' expr        
         | expr '-' expr         
         | expr '*' expr     
@@ -211,7 +211,7 @@ logicExpr: expr '|' expr
         | expr LOGICAL_OR expr
         ;
 expr2:  dataType
-        | IDENTIFIER  {declared=SymContains($1);declaredVar(declared);validateVarBeingUsed($1,currentBlock);}      
+        | IDENTIFIER  {validateVarBeingUsed($1,currentBlock);}      
         ;
 
 functionCall: IDENTIFIER '(' functionArgumentsPassed ')';
@@ -277,14 +277,6 @@ void newBlock(){
 void closeBlock(){
 	currentBlock--;
 }
-bool declaredVar(bool declared){
-    if(declared==false)
-    {
-        yyerror("Undeclared Variable");
-        return false;
-    }
-    return true;
-}
 bool declareVariable(char *varName, bool initialized, int vartype, int AssignedValue,int BlockNum){
 	bool alreadyExists= SymContains(varName);
     bool Match=validateTypeMatch(vartype,AssignedValue);
@@ -300,7 +292,11 @@ bool declareVariable(char *varName, bool initialized, int vartype, int AssignedV
             return true;
         }
 		else{
-			yyerror("Repeated declaration of the Variable");
+            char*msg="Repeated declaration of the Variable ";
+            char *msgError=malloc(strlen(varName)+strlen(msg));
+            strcpy(msgError, msg);
+            strcat(msgError, varName);
+			yyerror(msgError);
 			return false;
 		}
 	}		
@@ -308,10 +304,24 @@ bool declareVariable(char *varName, bool initialized, int vartype, int AssignedV
 bool validateTypeMatch(int vartype,int AssignedValue){
 
 	if(AssignedValue != -1 && vartype!= AssignedValue && vartype!=AssignedValue+1 && vartype+1!=AssignedValue)
-    {  yyerror("Type Mismatch");
+    {   char*VarTypeName=getTypeName(vartype);
+        char*AssignedTypeName=getTypeName(AssignedValue);
+        char*msg="Type Mismatch assigning ";
+        char *msgError=malloc(strlen(msg)+strlen(VarTypeName)+strlen(AssignedTypeName)+4);
+        strcpy(msgError, msg);
+        strcat(msgError, AssignedTypeName);
+        strcat(msgError, " to ");
+        strcat(msgError, VarTypeName);
+        yyerror(msgError);
 	    return false;
 	}
 	return true;
+}
+char *getTypeName(int value){
+    if(value==0) return "int";
+    if(value==2) return "float";
+    if(value==4) return "char";
+    if(value==6) return "bool";
 }
 bool validateSameBlock(int BlockNum){
     if(BlockNum == currentBlock || BlockNum == 0) {
@@ -331,18 +341,33 @@ bool validateSameBlock(int BlockNum){
 bool validateVarBeingUsed(char* varName,int currentBlock){
 	bool alreadyExists=SymContains(varName); 
 	if(alreadyExists==false){
-		yyerror("Undeclared Variable");
+		char*msg="Undeclared Variable ";
+        char *msgError=malloc(strlen(varName)+strlen(msg));
+        strcpy(msgError, msg);
+        strcat(msgError, varName);
+		yyerror(msgError);
 		return false;
 	}
 	else {
         int VarBlock=getBlockNumber(varName);
-        if(VarBlock>currentBlock){
-           yyerror("Variable is not declared in the current scope"); 
+        if(VarBlock>currentBlock)
+        {
+            char*msg=" is not declared in the current scope";
+            char *msgError=malloc(strlen(msg)+strlen(varName)+9);
+            strcpy(msgError, "Variable ");
+            strcat(msgError, varName);
+            strcat(msgError, msg);
+            yyerror(msgError); 
            return false;
         }
 		bool initialized=checkInitialization(varName,currentBlock);
 		if(initialized == false){
-			yyerror("Variable used before being initialized");
+            char*msg=" is used before being initialized";
+            char *msgError=malloc(strlen(msg)+strlen(varName)+9);
+            strcpy(msgError, "Variable ");
+            strcat(msgError, varName);
+            strcat(msgError, msg);
+            yyerror(msgError); 
 			return false;
 		}
 		else{
@@ -355,8 +380,13 @@ bool validateVarBeingUsed(char* varName,int currentBlock){
 bool validateExpOperation(char* varName, int Vartype,  int Assignedtype,int CurrentBlock){
 	bool alreadyExists=SymContains(varName); 
 	if(alreadyExists==false) 
-    {yyerror("Undeclared Variable");
-     return false;
+    {
+        char*msg="Undeclared Variable ";
+        char *msgError=malloc(strlen(varName)+strlen(msg));
+        strcpy(msgError, msg);
+        strcat(msgError, varName);
+		yyerror(msgError);   
+        return false;
     }
 
 	bool Matched=validateTypeMatch(Vartype, Assignedtype);
@@ -369,8 +399,11 @@ bool validateExpOperation(char* varName, int Vartype,  int Assignedtype,int Curr
     }
 
 	if(!checkConstantInitialized(varName))
-    {
-		yyerror("Assigning to a const variable");
+    {   char*msg="Assigning another value to a const variable ";
+        char *msgError=malloc(strlen(varName)+strlen(msg));
+        strcpy(msgError, msg);
+        strcat(msgError, varName);
+		yyerror(msgError);
 		return false;
     }
 	return validateVarBeingUsed(varName,currentBlock);
