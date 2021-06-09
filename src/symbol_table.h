@@ -88,7 +88,7 @@ int getBlockNumber(char* varName)
 		return -1;
 	}
 }
-enum variableType getVarType(char* varName) 
+int getVarType(char* varName) 
 {
 	
 	struct variable * var;

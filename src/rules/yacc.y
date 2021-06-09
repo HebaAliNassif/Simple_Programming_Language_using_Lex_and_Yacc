@@ -14,7 +14,15 @@ void closeBlock();
 int currentBlock = 0;
 int blockCount = 0;
 int parentBlock[100];
-
+bool declared;
+bool declaredVar(bool declared);
+bool declareVariable(char *varName, bool initialized, int vartype, int AssignedValue,int BlockNum);
+int currentVartype;
+int assignedType;
+bool validateTypeMatch(int vartype,int AssignedValue);
+bool validateSameBlock(int BlockNum);
+bool validateVarBeingUsed(char* varName,int currentBlock);
+bool validateExpOperation(char* varName, int Vartype,  int Assignedtype,int CurrentBlock);
 int yylex(void);
 void yyerror(char *s);
 
@@ -115,8 +123,10 @@ void yyerror(char *s);
 
 %nonassoc   ELSE
 %%
-program:stmts   { exit(0); }
-        | ;
+program:
+        stmts   { exit(0); }
+        | 
+        ;
 
 stmts:stmt
     | stmts stmt
@@ -126,7 +136,7 @@ stmt:variableDecl SEMICOLON
     | expr SEMICOLON
     | functionCall SEMICOLON
     | function 
-    | IDENTIFIER ASSIGN functionCall SEMICOLON                   
+    | IDENTIFIER ASSIGN functionCall SEMICOLON  {declared=SymContains("x");declaredVar(declared);validateVarBeingUsed("x",currentBlock);}              
     | BREAK SEMICOLON                  
     | CONTINUE SEMICOLON 
     | returnStmt SEMICOLON                               
@@ -140,32 +150,40 @@ stmt:variableDecl SEMICOLON
     ;
      
 
-varType: TYPE_INT
-        | TYPE_FLOAT
-        | TYPE_CHAR
-        | TYPE_BOOL
-        | TYPE_VOID;
-dataType: INTEGER
-        | FLOAT
-        | CHAR
-        | BOOL;     
-variableDecl: varType IDENTIFIER 
-            | varType IDENTIFIER ASSIGN expr
-            | varType IDENTIFIER ASSIGN functionCall
-            | CONST varType IDENTIFIER
-            | CONST varType IDENTIFIER ASSIGN expr
-            | CONST varType IDENTIFIER ASSIGN functionCall;
+varType: 
+        TYPE_INT {currentVartype=0;}
+        | TYPE_FLOAT {currentVartype=2;}
+        | TYPE_CHAR {currentVartype=4;}
+        | TYPE_BOOL {currentVartype=6;}
+        ;
+        
+dataType: 
+        INTEGER {assignedType=0;}
+        | FLOAT {assignedType=2;}
+        | CHAR {assignedType=4;}
+        | BOOL {assignedType=6;}
+        ;     
+variableDecl:
+            varType IDENTIFIER {declareVariable("x",false , currentVartype,-1,currentBlock);}
+            | varType IDENTIFIER ASSIGN expr {declareVariable("x",true , currentVartype,assignedType,currentBlock);}
+            | varType IDENTIFIER ASSIGN functionCall {declareVariable("x",true , currentVartype,assignedType,currentBlock);}
+            | CONST varType IDENTIFIER {currentVartype=currentVartype+1; declareVariable("x",false, currentVartype,-1,currentBlock);}
+            | CONST varType IDENTIFIER ASSIGN expr {currentVartype=currentVartype+1; declareVariable("x",true , currentVartype,assignedType,currentBlock);}
+            | CONST varType IDENTIFIER ASSIGN functionCall {currentVartype=currentVartype+1; declareVariable("x",true , currentVartype,assignedType,currentBlock);}
+            ; 
 
-multiVariableDecl:  variableDecl COMA IDENTIFIER                      
-                | variableDecl COMA IDENTIFIER ASSIGN expr       
-                | multiVariableDecl COMA IDENTIFIER                
-                | multiVariableDecl COMA IDENTIFIER ASSIGN expr; 
-
+multiVariableDecl:  
+                variableDecl COMA IDENTIFIER {declareVariable("x",false , currentVartype,-1,currentBlock);}                     
+                | variableDecl COMA IDENTIFIER ASSIGN expr {declareVariable("x",true , currentVartype,assignedType,currentBlock);}      
+                | multiVariableDecl COMA IDENTIFIER {declareVariable("x",false , currentVartype,-1,currentBlock);}              
+                | multiVariableDecl COMA IDENTIFIER ASSIGN expr {declareVariable("x",true , currentVartype,assignedType,currentBlock);} 
+                ;
 expr:mathExpr
     | logicExpr
-    | expr2;
-mathExpr: expr ASSIGN expr 
-        | IDENTIFIER ASSIGN expr          
+    | expr2
+    ;
+mathExpr: expr ASSIGN expr {validateExpOperation("x",currentVartype,assignedType,currentBlock);}
+        | IDENTIFIER ASSIGN expr   {declared=SymContains("x");declaredVar(declared);validateExpOperation("x",currentVartype,assignedType,currentBlock);}        
         | expr '+' expr        
         | expr '-' expr         
         | expr '*' expr     
@@ -173,15 +191,16 @@ mathExpr: expr ASSIGN expr
         | expr '%' expr            
         | expr '<' expr         
         | expr '>' expr
-        | expr INC
-        | INC expr
-        | expr DEC
-        | DEC expr  
+        | expr INC {validateExpOperation("x",currentVartype,currentVartype,currentBlock);}
+        | INC expr {validateExpOperation("x",currentVartype,currentVartype,currentBlock);}
+        | expr DEC {validateExpOperation("x",currentVartype,currentVartype,currentBlock);}
+        | DEC expr {validateExpOperation("x",currentVartype,currentVartype,currentBlock);} 
         | expr EQUAL expr
         | expr NOT_EQUAL expr
         | expr GREATER_EQUAL expr
         | expr '^' expr 
-        | expr LESS_EQUAL expr;
+        | expr LESS_EQUAL expr
+        ;
 logicExpr: expr '|' expr                 
         | expr '&' expr         
         | '!' expr         
@@ -189,15 +208,17 @@ logicExpr: expr '|' expr
         | expr SHL expr
         | expr SHR expr
         | expr LOGICAL_AND expr
-        | expr LOGICAL_OR expr;
+        | expr LOGICAL_OR expr
+        ;
 expr2:  dataType
-        | IDENTIFIER        
+        | IDENTIFIER  {declared=SymContains("x");declaredVar(declared);validateVarBeingUsed("x",currentBlock);}      
         ;
 
 functionCall: IDENTIFIER '(' functionArgumentsPassed ')';
 functionArgumentsPassed:expr
                 | functionArgumentsPassed COMA expr
-                | ;
+                | 
+                ;
 function:   functionHeader body ;
 
 functionHeader:    varType IDENTIFIER '(' functionArgumentsDecl ')' ;
@@ -206,8 +227,9 @@ functionArgumentsDecl:
                     | variableDecl                        
                     | functionArgumentsDecl COMA variableDecl 
                     ;                   
-body:'{'  '}'
-    | '{' stmts '}';  
+body:'{' {newBlock();} '}' {closeBlock();}
+    | '{' {newBlock();} stmts '}' {closeBlock();}
+    ;  
 
 returnStmt:RETURN expr                 
     | RETURN 
@@ -222,7 +244,8 @@ un_matched_if:  IF '(' expr ')' body
 matched_if:    IF '(' expr ')' body ELSE body
                 | IF '(' expr ')' stmt ELSE stmt
                 | IF '(' expr ')' body ELSE stmt
-                | IF '(' expr ')' stmt ELSE body;
+                | IF '(' expr ')' stmt ELSE body
+                ;
 
 switchStmt:SWITCH '(' expr ')' body;
 
@@ -230,12 +253,14 @@ caseStmt: CASE expr ':' stmt
     | DEFAULT ':' stmt             
     ;
 whileStmt:WHILE '(' expr ')' body
-        | WHILE '(' expr ')' stmt;      
+        | WHILE '(' expr ')' stmt
+        ;      
 
 doWhileStmt:DO body WHILE '(' expr ')';  
 
 forStmt:forHeader body
-        |forHeader stmt; 
+        |forHeader stmt
+        ; 
 forHeader: FOR '(' variableDecl SEMICOLON expr SEMICOLON expr ')';
 
  
@@ -253,8 +278,101 @@ void newBlock(){
 void closeBlock(){
 	currentBlock--;
 }
+bool declaredVar(bool declared){
+    if(declared==false)
+    {
+        yyerror("Undeclared Variable");
+        return false;
+    }
+    return true;
+}
+bool declareVariable(char *varName, bool initialized, int vartype, int AssignedValue,int BlockNum){
+	bool alreadyExists= SymContains(varName);
+    bool Match=validateTypeMatch(vartype,AssignedValue);
+	if(Match==false) {return false;}
+	if(alreadyExists == false)
+	{	
+        addVariableToSym(varName, initialized, vartype, BlockNum);
+        return true;
+    }
+	else{
+		if(validateSameBlock(BlockNum) == false){	
+			addVariableToSym(varName, initialized, vartype, BlockNum);
+            return true;
+        }
+		else{
+			yyerror("Repeated declaration of the Variable");
+			return false;
+		}
+	}		
+}
+bool validateTypeMatch(int vartype,int AssignedValue){
 
+	if(AssignedValue != -1 && vartype!= AssignedValue && vartype!=AssignedValue+1 && vartype+1!=AssignedValue)
+    {  yyerror("Type Mismatch");
+	    return false;
+	}
+	return true;
+}
+bool validateSameBlock(int BlockNum){
+    if(BlockNum == currentBlock || BlockNum == 0) {
+        return true;
+    }
 
+	int parentBlockNum = currentBlock;
+	
+	while(parentBlockNum != 0){
+	    parentBlockNum = parentBlock[parentBlockNum];
+		if(BlockNum == parentBlockNum){
+		    return true;
+		}
+	}
+	return false;
+}
+bool validateVarBeingUsed(char* varName,int currentBlock){
+	bool alreadyExists=SymContains(varName); 
+	if(alreadyExists==false){
+		yyerror("Undeclared Variable");
+		return false;
+	}
+	else {
+        int VarBlock=getBlockNumber(varName);
+        if(VarBlock>currentBlock){
+           yyerror("Variable is not declared in the current scope"); 
+           return false;
+        }
+		bool initialized=checkInitialization(varName,currentBlock);
+		if(initialized == false){
+			yyerror("Variable used before being initialized");
+			return false;
+		}
+		else{
+            bool setUsed=setVarUsedBefore(varName);
+			return validateSameBlock(currentBlock);
+		}
+
+	}
+}
+bool validateExpOperation(char* varName, int Vartype,  int Assignedtype,int CurrentBlock){
+	bool alreadyExists=SymContains(varName); 
+	if(alreadyExists==false) 
+    {yyerror("Undeclared Variable");
+     return false;
+    }
+
+	bool Matched=validateTypeMatch(Vartype, Assignedtype);
+	if(Matched==false) 
+    {
+        return false;
+    }
+
+	if(!checkConstantInitialized(varName))
+    {
+		yyerror("Assigning to a const variable");
+		return false;
+    }
+	return validateVarBeingUsed(varName,currentBlock);
+}
 void yyerror(char *s) {
     fprintf(stdout, "%s\n", s);
 }
