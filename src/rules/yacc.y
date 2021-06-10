@@ -6,7 +6,7 @@
 #include <string.h>
 #include "../header.h"
 #include "../symbol_table.h"
-
+#define YYERROR_VERBOSE
 /*
  *Block\Scope data
  */
@@ -23,6 +23,11 @@ char *getTypeName(int value);
 bool validateSameBlock(int BlockNum);
 bool validateVarBeingUsed(char* varName,int currentBlock);
 bool validateExpOperation(char* varName, int Vartype,  int Assignedtype,int CurrentBlock);
+extern FILE *yyin;
+extern FILE *yyout;
+FILE *assembly;
+char*operation;
+int RegisterNum=0;
 int yylex(void);
 void yyerror(char *s);
 %}
@@ -145,7 +150,7 @@ stmt:variableDecl SEMICOLON
     | whileStmt                  
     | doWhileStmt SEMICOLON           
     | forStmt  
-    | SEMICOLON                                             
+    | SEMICOLON                                       
     ;
      
 
@@ -184,16 +189,17 @@ expr:mathExpr
 mathExpr: 
         | IDENTIFIER ASSIGN expr   {validateExpOperation($1,currentVartype,assignedType,currentBlock);}        
         | expr '+' expr        
-        | expr '-' expr         
+        | expr '-' expr 
+        | '-' expr        
         | expr '*' expr     
         | expr '/' expr    
         | expr '%' expr            
         | expr '<' expr         
         | expr '>' expr
-        | IDENTIFIER INC {validateExpOperation($1,currentVartype,currentVartype,currentBlock);}
-        | INC IDENTIFIER {validateExpOperation($2,currentVartype,currentVartype,currentBlock);}
-        | IDENTIFIER DEC {validateExpOperation($1,currentVartype,currentVartype,currentBlock);}
-        | DEC IDENTIFIER {validateExpOperation($2,currentVartype,currentVartype,currentBlock);} 
+        | IDENTIFIER INC {validateExpOperation($1,currentVartype,currentVartype,currentBlock);fprintf(assembly,"\n MOV R0 , %s",$1);fprintf(assembly,"\n MOV R1 , %s",$1);fprintf(assembly,"\n INC R1");fprintf(assembly,"\n MOV %s , R1",$1);}
+        | INC IDENTIFIER {validateExpOperation($2,currentVartype,currentVartype,currentBlock);fprintf(assembly,"\n MOV R1 , %s",$2);fprintf(assembly,"\n INC R1");fprintf(assembly,"\n MOV %s , R1",$2);}
+        | IDENTIFIER DEC {validateExpOperation($1,currentVartype,currentVartype,currentBlock);fprintf(assembly,"\n MOV R0 , %s",$1);fprintf(assembly,"\n MOV R1 , %s",$1);fprintf(assembly,"\n DEC R1");fprintf(assembly,"\n MOV %s , R1",$1);}
+        | DEC IDENTIFIER {validateExpOperation($2,currentVartype,currentVartype,currentBlock);fprintf(assembly,"\n MOV R1 , %s",$2);fprintf(assembly,"\n DEC R1");fprintf(assembly,"\n MOV %s , R1",$2);} 
         | expr EQUAL expr
         | expr NOT_EQUAL expr
         | expr GREATER_EQUAL expr
@@ -209,18 +215,19 @@ logicExpr: expr '|' expr
         | expr LOGICAL_AND expr
         | expr LOGICAL_OR expr
         ;
-expr2:  dataType
+expr2:  dataType 
         | IDENTIFIER  {validateVarBeingUsed($1,currentBlock);}      
         ;
 
 functionCall: IDENTIFIER '(' functionArgumentsPassed ')';
+
 functionArgumentsPassed:expr
                 | functionArgumentsPassed COMA expr
                 | 
                 ;
 function:   functionHeader body ;
 
-functionHeader:    varType IDENTIFIER '(' functionArgumentsDecl ')' ;
+functionHeader: varType IDENTIFIER '(' functionArgumentsDecl ')' ;
 
 functionArgumentsDecl:            
                     | variableDecl                        
@@ -238,7 +245,8 @@ ifStmt:un_matched_if
     | matched_if
     ;
 un_matched_if:  IF '(' expr ')' body
-                | IF '(' expr ')' stmt;
+                | IF '(' expr ')' stmt
+                ;
 matched_if:    IF '(' expr ')' body ELSE body
                 | IF '(' expr ')' stmt ELSE stmt
                 | IF '(' expr ')' body ELSE stmt
@@ -415,6 +423,8 @@ void yyerror(char *s) {
 }
 
 int main(void) {
+    assembly= fopen("assembly", "w");
     yyparse();
+    fclose (assembly);
     return 0;
 }
