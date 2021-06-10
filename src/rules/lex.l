@@ -36,19 +36,18 @@ void yyerror(char *);
 "continue"                  return CONTINUE;
 "return"                    return RETURN;
 
-0                          return INTEGER;
+[\"].*[\"]                    {yylval.charVal=strdup(yytext);return CHAR;} 
+[0-9]+\.[0-9]+             {yylval.floatVal=atof(yytext);return FLOAT;}  
+0                          {yylval.intVal=atoi(yytext);return INTEGER;}
                             
 
-[1-9][0-9]*                return INTEGER;
+[1-9][0-9]*                {yylval.intVal=atoi(yytext);return INTEGER;}
                         
 
-[0-9]+"."[0.9]*             return FLOAT;               
-                        
-   
-\"[.]*\"                    return CHAR;    
+                                   
 
-"true"                      return BOOL;
-"false"                     return BOOL; 
+"true"                      {yylval.boolVal=strdup(yytext);return BOOL;}
+"false"                     {yylval.boolVal=strdup(yytext);return BOOL;}
 
 [a-zA-Z_]([a-zA-Z_]|[0-9])*  {yylval.variableName=strdup(yytext);return IDENTIFIER;}
                                   

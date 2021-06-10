@@ -25,15 +25,14 @@ bool validateVarBeingUsed(char* varName,int currentBlock);
 bool validateExpOperation(char* varName, int Vartype,  int Assignedtype,int CurrentBlock);
 int yylex(void);
 void yyerror(char *s);
-
 %}
 
 %union {
-    //int intVal;                    
-	//float floatVal;
-    //char charVal;
+    int intVal;                    
+	float floatVal;
+    char* charVal;
     char* variableName;
-    //bool boolVal;
+    char* boolVal;
 };
 
 %start program
@@ -64,16 +63,16 @@ void yyerror(char *s);
 %token RETURN
 
 // Values
-%token INTEGER 
+/*%token INTEGER 
 %token FLOAT
 %token CHAR
-%token BOOL
-/*
+%token BOOL*/
+
 %token <intVal> INTEGER 
 %token <floatVal> FLOAT
 %token <charVal> CHAR
 %token <boolVal> BOOL
-*/
+
 //variable
 //%token IDENTIFIER 
 %token <variableName> IDENTIFIER 
@@ -322,6 +321,7 @@ char *getTypeName(int value){
     if(value==2) return "float";
     if(value==4) return "char";
     if(value==6) return "bool";
+    return "unknown type";
 }
 bool validateSameBlock(int BlockNum){
     if(BlockNum == currentBlock || BlockNum == 0) {
@@ -341,6 +341,8 @@ bool validateSameBlock(int BlockNum){
 bool validateVarBeingUsed(char* varName,int currentBlock){
 	bool alreadyExists=SymContains(varName); 
 	if(alreadyExists==false){
+        currentVartype=-1;
+        assignedType=-1;
 		char*msg="Undeclared Variable ";
         char *msgError=malloc(strlen(varName)+strlen(msg));
         strcpy(msgError, msg);
