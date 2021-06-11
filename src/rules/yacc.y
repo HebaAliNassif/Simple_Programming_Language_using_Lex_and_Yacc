@@ -23,11 +23,11 @@ char *getTypeName(int value);
 bool validateSameBlock(int BlockNum);
 bool validateVarBeingUsed(char* varName,int currentBlock);
 bool validateExpOperation(char* varName, int Vartype,  int Assignedtype,int CurrentBlock);
-extern FILE *yyin;
-extern FILE *yyout;
 FILE *assembly;
+FILE *symbolTableFile;
 char*operation;
 int RegisterNum=0;
+void printSymbolTable();
 int yylex(void);
 void yyerror(char *s);
 %}
@@ -128,7 +128,7 @@ void yyerror(char *s);
 %nonassoc   ELSE
 %%
 program:
-        stmts   { exit(0); }
+        stmts 
         | 
         ;
 
@@ -418,13 +418,24 @@ bool validateExpOperation(char* varName, int Vartype,  int Assignedtype,int Curr
     }
 	return validateVarBeingUsed(varName,currentBlock);
 }
+void printSymbolTable()
+{   struct variable *var;
+	fprintf(symbolTableFile,"Variable Name|Variable Type|ScopeNumber|Initialized|used");
+
+	for (var = symbolTable; var != NULL; var = (struct variable*)(var->hh.next)) {
+		fprintf(symbolTableFile,"\n%s|%s|%d|%s|%s", var->varName, getVarTypeName(var->varType), var->blockNumber, var->initialized? "Yes" : "No",var->usedBefore? "Yes" : "No");
+	}
+}
 void yyerror(char *s) {
     fprintf(stdout, "%s\n", s);
 }
 
 int main(void) {
     assembly= fopen("assembly", "w");
+    symbolTableFile= fopen("symbolTableFile", "w");
     yyparse();
+    printSymbolTable();
     fclose (assembly);
+    fclose (symbolTableFile);
     return 0;
 }

@@ -124,10 +124,13 @@ bool setVarUsedBefore(char* varName)
 }
 const char* getVarTypeName(enum variableType type) 
 {
-	if(type==IntegerVarType || ConstIntegerVarType){return "int";}
-	if(type==FloatVarType || ConstFloatVarType){return "float";}
-	if(type==CharVarType || ConstCharVarType){return "char";}
+	if(type==IntegerVarType ){return "int";}
+	if(type==FloatVarType ){return "float";}
+	if(type==CharVarType ){return "char";}
 	if(type==BoolVarType ){return "bool";}	
+	if(type==ConstIntegerVarType){return "const int";}	
+	if(type==ConstFloatVarType ){return "const float";}	
+	if(type==ConstCharVarType ){return "const char";}	
 }	
 bool checkVarType(char* varName , enum variableType type)
 {   

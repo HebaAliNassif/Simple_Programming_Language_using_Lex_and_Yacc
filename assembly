@@ -1,0 +1,5 @@
+
+ MOV R0 , y
+ MOV R1 , y
+ INC R1
+ MOV y , R1
