@@ -1,7 +1,7 @@
 # Simple_Programming_Language_using_Lex_and_Yacc
 
 
-**How to run**
+**How to run on Windows**
 - $ make compiler
 - $ pip install Pillow  
 - $ pip install tabulate

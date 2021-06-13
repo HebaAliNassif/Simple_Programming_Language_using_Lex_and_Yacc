@@ -26,10 +26,12 @@ table_label.grid(row =0, column=10)
 def exit():
   root.quit()
 
-def browse():
-  root.filename = filedialog.askopenfilename(initialdir = 'Desktop', title = 'Select a File', filetypes = (("text files", "*.txt"),('cpp files', '*.cpp')))
-  f = open(root.filename, "r")
-  code_textbox.insert(END, f.read())
+def browse():  
+  root.filename = filedialog.askopenfilename(initialdir = 'Desktop', title = 'Select a File', filetypes = (('cpp files', '*.cpp'),("text files", "*.txt")))
+  if root.filename != '':
+    code_textbox.delete("1.0", END)
+    f = open(root.filename, "r")
+    code_textbox.insert(END, f.read())
 
 def displayTable():
   table_textbox.delete("1.0", END)
