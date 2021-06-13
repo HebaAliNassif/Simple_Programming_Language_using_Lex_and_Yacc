@@ -26,6 +26,7 @@ struct variable
 	UT_hash_handle hh; 
 };
 
+
 struct variable* symbolTable = NULL;
 
 //Symbol table methods

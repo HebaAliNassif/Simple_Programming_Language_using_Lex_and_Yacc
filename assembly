@@ -1,5 +1,15 @@
 
- MOV R0 , y
- MOV R1 , y
- INC R1
- MOV y , R1
+sum: 	
+ MOV R0, x
+ MOV R1, y
+ ADD R2, R0, R1
+Return	
+Main:
+ MOV R0, 10
+ MOV R1, 20
+ CALL sum 	
+ MOV a , R2
+ MOV R0, a
+ MOV R1, a
+ CALL sum 	
+ MOV a , R2

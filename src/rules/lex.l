@@ -1,6 +1,5 @@
 %{
 #include <stdlib.h>
-#include "../header.h"
 #include "yacc.tab.h"
 #include <string.h>
 
@@ -23,6 +22,12 @@ void yyerror(char *);
 "bool"                      return TYPE_BOOL;
 "void"                      return TYPE_VOID;
 
+"main"                      return Main;
+
+"function"                      return FUNC;
+"call function"                      return CALL_FUNC;
+
+
 "const"                     return CONST;
 "if"                        return IF;
 "else"                      return ELSE;
@@ -33,10 +38,9 @@ void yyerror(char *);
 "do"                        return DO;
 "while"                     return WHILE;
 "break"                     return BREAK;
-"continue"                  return CONTINUE;
 "return"                    return RETURN;
 
-[\"].*[\"]                    {yylval.charVal=strdup(yytext);return CHAR;} 
+[\'].[\']                    {yylval.charVal=yytext[1];return CHAR;} 
 [0-9]+\.[0-9]+             {yylval.floatVal=atof(yytext);return FLOAT;}  
 0                          {yylval.intVal=atoi(yytext);return INTEGER;}
                             
@@ -46,24 +50,32 @@ void yyerror(char *);
 
                                    
 
-"true"                      {yylval.boolVal=strdup(yytext);return BOOL;}
-"false"                     {yylval.boolVal=strdup(yytext);return BOOL;}
+"true"                      {yylval.boolVal="true";return BOOL;}
+"false"                     {yylval.boolVal="false";return BOOL;}
 
 [a-zA-Z_]([a-zA-Z_]|[0-9])*  {yylval.variableName=strdup(yytext);return IDENTIFIER;}
                                   
 
-
+":"                        return COLON;
+"!"                        return NOT;
+"+"                        return PLUS;
+"-"                        return MINUS;
+"/"                        return DIVI;
+"*"                        return MULT;
 "++"                        return INC;
 "--"                        return DEC;
 "=="                        return EQUAL;
 "!="                        return NOT_EQUAL;
+">"                        return GREATER;
+"<"                        return LESS;
 ">="                        return GREATER_EQUAL;
 "<="                        return LESS_EQUAL;
-"<<"                        return SHL;
-">>"                        return SHR;
 "&&"                        return LOGICAL_AND;
 "||"                        return LOGICAL_OR;
-
+"("                         return LEFTPARE;
+")"                         return RIGHTPARE;
+"{"                         return CURLEFT;
+"}"                         return CURRIGHT;
 "="                         return ASSIGN;
 ";"                         return SEMICOLON;
 ","                         return COMA;
