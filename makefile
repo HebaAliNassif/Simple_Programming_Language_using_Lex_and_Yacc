@@ -1,7 +1,7 @@
 compiler:
 	flex src\rules\lex.l
 	mv lex.yy.c src\rules
-	bison -d src\rules\yacc.y
+	bison -d -v src\rules\yacc.y
 	gcc src\rules\lex.yy.c src\rules\yacc.tab.c src\main.c -o compiler
 	#gcc src\rules\lex.yy.c src\rules\yacc.tab.c  -o compiler
 
