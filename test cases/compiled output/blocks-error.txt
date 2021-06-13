@@ -1,0 +1,7 @@
+Main:
+ MOV R0, 10
+ MOV x , R0
+ MOV R0, 20
+ MOV y , R0
+ MOV R0, y
+ MOV x , R0

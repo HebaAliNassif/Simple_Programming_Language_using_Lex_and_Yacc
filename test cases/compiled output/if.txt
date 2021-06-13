@@ -1,0 +1,24 @@
+Main:
+ MOV R0, 10
+ MOV x , R0
+ MOV R0, x
+ MOV R1, 10
+ CMPE R2, R0, R1
+ JF R2, LabelElseExit2 	
+ MOV R2, 10
+ MOV b , R2
+ JMP LabelIfExit0 
+ LabelElseExit2: 	
+ MOV R2, x
+ MOV R3, 5
+ CMPE R4, R2, R3
+ JF R4, LabelElseExit5 	
+ MOV R4, 5
+ MOV b , R4
+ JMP LabelIfExit0 
+ LabelElseExit5: 	
+ MOV R4, x
+ MOV b , R4
+ JMP LabelIfExit0 
+ LabelElseExit7: 	
+ LabelIfExit0: 

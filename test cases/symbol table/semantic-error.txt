@@ -1,0 +1,3 @@
+Variable Name|Variable Type|ScopeNumber|Initialized|used
+x|int|2|No|Yes
+a|char|2|No|No

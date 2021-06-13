@@ -1,0 +1,49 @@
+Main:
+ MOV R0, 0
+ MOV i , R0
+ LabelFor3:
+ MOV R0, i
+ MOV R1, 10
+ CMPL R2, R0, R1
+ JF R2, LabelForExit3 	
+ MOV R2, i
+ MOV R1 , i
+ INC R1
+ MOV i , R1
+ MOV R2, 10
+ MOV b , R2
+ JMP LabelFor3: 
+ LabelForExit3: 
+ MOV R2, 0
+ MOV x , R2
+ LabelWhile6:
+ MOV R2, x
+ MOV R3, 20
+ CMPL R4, R2, R3
+ JF R4, LabelWhileExit6 	
+ MOV R0, x
+ MOV R1 , x
+ INC R1
+ MOV x , R1
+ JMP LabelWhile6 
+ LabelWhileExit6: 
+ MOV R0, 0
+ MOV x , R0
+ LabelDo8: 	
+ MOV R0, x
+ MOV R1 , x
+ INC R1
+ MOV x , R1
+ MOV R0, x
+ MOV R1, 20
+ CMPL R2, R0, R1
+ JT R2, LabelDo8 	
+ MOV RS , x
+ MOV R0, 1
+ CMPE R1, RS, R0
+ JF R1, LabelCaseExit0 	
+ MOV R1, 10
+ MOV x , R1
+ JMP LabelSwitchExit0 	
+ LabelCaseExit0: 	
+ LabelSwitchExit0: 	

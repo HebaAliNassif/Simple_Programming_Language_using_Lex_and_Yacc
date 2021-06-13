@@ -1,0 +1,19 @@
+Main:
+ MOV R0, 0
+ MOV x , R0
+ MOV R0, 10
+ MOV y , R0
+ MOV R0, x
+ MOV R1, y
+ DIV R2, R0, R1
+ MOV R3, x
+ SUB R4, R2, R3
+ MOV z , R4
+ MOV R4, true
+ MOV a , R4
+ MOV R4, false
+ MOV b , R4
+ MOV R4, a
+ MOV R5, b
+ AND R6, R4, R5
+ MOV c , R6

@@ -1,0 +1,5 @@
+Variable Name|Variable Type|ScopeNumber|Initialized|used
+sum|int|0|No|No
+x|int|1|No|Yes
+y|int|1|No|Yes
+a|int|3|Yes|Yes

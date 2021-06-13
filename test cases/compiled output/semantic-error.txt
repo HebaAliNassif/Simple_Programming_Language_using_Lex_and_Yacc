@@ -1,0 +1,2 @@
+Main:
+ MOV R0, a
